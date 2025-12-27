@@ -158,8 +158,8 @@ class WhatsAppAutomation:
                 kit.sendwhats_image(phone_number, image_path, caption, 
                                   hour, minute)
             else:
-                kit.sendwhats_image(phone_number, image_path, 
-                                  tab_close=True)
+                kit.sendwhats_image(phone_number, image_path, "", 
+                                  hour, minute)
             
             print(f"Image sent successfully to {phone_number}")
             return True
