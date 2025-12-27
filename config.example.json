@@ -1,0 +1,30 @@
+{
+  "default_settings": {
+    "wait_time": 15,
+    "tab_close": true,
+    "close_time": 3,
+    "bulk_message_interval": 60
+  },
+  "example_contacts": {
+    "note": "Replace these with your actual contacts",
+    "contacts": [
+      {
+        "name": "John Doe",
+        "phone": "+1234567890"
+      },
+      {
+        "name": "Jane Smith",
+        "phone": "+0987654321"
+      }
+    ]
+  },
+  "example_groups": {
+    "note": "Replace these with your actual group IDs from WhatsApp Web URL",
+    "groups": [
+      {
+        "name": "Family Group",
+        "group_id": "GroupID123"
+      }
+    ]
+  }
+}
