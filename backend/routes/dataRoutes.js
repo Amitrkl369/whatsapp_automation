@@ -20,7 +20,11 @@ let students = [];
 // Upload and parse CSV with contacts
 router.post('/upload-contacts', upload.single('file'), async (req, res) => {
   try {
+    console.log('Upload request received');
+    console.log('File:', req.file);
+    
     if (!req.file) {
+      console.error('No file in request');
       return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
     
@@ -29,7 +33,7 @@ router.post('/upload-contacts', upload.single('file'), async (req, res) => {
     // Create a readable stream from the buffer (memory storage)
     const bufferStream = Readable.from(req.file.buffer.toString());
 
-    console.log('Processing file from memory');
+    console.log('Processing file from memory, size:', req.file.size);
 
     bufferStream
       .pipe(csvParser())

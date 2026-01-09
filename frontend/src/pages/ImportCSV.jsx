@@ -56,11 +56,8 @@ export default function ImportCSV() {
 
     try {
       // Upload to contacts endpoint for teacher/student data
-      const response = await axios.post('/data/upload-contacts', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      // Don't set Content-Type manually - axios will set it with proper boundary
+      const response = await axios.post('/data/upload-contacts', formData);
 
       setMessage({
         type: 'success',
@@ -68,9 +65,11 @@ export default function ImportCSV() {
       });
       setFile(null);
     } catch (error) {
+      console.error('Upload error:', error);
+      console.error('Error response:', error.response);
       setMessage({
         type: 'error',
-        text: error.response?.data?.message || 'Failed to upload contacts. Please try again.',
+        text: error.response?.data?.message || error.message || 'Failed to upload contacts. Please try again.',
       });
     } finally {
       setUploading(false);
