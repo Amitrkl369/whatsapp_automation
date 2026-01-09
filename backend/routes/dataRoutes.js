@@ -1,33 +1,17 @@
 import express from 'express';
 import multer from 'multer';
 import csvParser from 'csv-parser';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { Readable } from 'stream';
 
 const router = express.Router();
 
-// Configure multer for CSV uploads
-const uploadsDir = path.join(__dirname, '..', 'uploads');
-
-// Ensure uploads directory exists
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `contacts-${Date.now()}.csv`);
+// Use memory storage for Vercel compatibility
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
   }
 });
-
-const upload = multer({ storage });
 
 // In-memory storage for teachers and students (replace with database in production)
 let teachers = [];
@@ -41,11 +25,13 @@ router.post('/upload-contacts', upload.single('file'), async (req, res) => {
     }
     
     const results = [];
-    const filePath = req.file.path;
+    
+    // Create a readable stream from the buffer (memory storage)
+    const bufferStream = Readable.from(req.file.buffer.toString());
 
-    console.log('Processing file:', filePath);
+    console.log('Processing file from memory');
 
-    fs.createReadStream(filePath)
+    bufferStream
       .pipe(csvParser())
       .on('data', (data) => results.push(data))
       .on('error', (err) => {
@@ -115,9 +101,6 @@ router.post('/upload-contacts', upload.single('file'), async (req, res) => {
         console.log('Parsed teachers:', teachers.length);
         console.log('Parsed students:', students.length);
 
-        // Delete uploaded file after processing
-        fs.unlinkSync(filePath);
-
         res.json({
           success: true,
           message: 'Contacts uploaded successfully',
@@ -126,6 +109,7 @@ router.post('/upload-contacts', upload.single('file'), async (req, res) => {
         });
       });
   } catch (error) {
+    console.error('Upload error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
