@@ -27,6 +27,28 @@ class DatabaseService {
    * Initialize database tables
    */
   initializeTables() {
+    // Teachers table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS teachers (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        phone TEXT NOT NULL UNIQUE,
+        message TEXT,
+        createdAt TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Students table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS students (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        phone TEXT NOT NULL UNIQUE,
+        message TEXT,
+        createdAt TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Meetings table
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS meetings (
@@ -198,6 +220,82 @@ class DatabaseService {
   clearAllMeetings() {
     this.db.exec('DELETE FROM meetings');
     console.log('🗑️ All meetings cleared from database');
+  }
+
+  // ============ TEACHERS ============
+
+  /**
+   * Add or update teachers (bulk)
+   */
+  saveTeachers(teachers) {
+    const stmt = this.db.prepare(`
+      INSERT OR REPLACE INTO teachers (id, name, phone, message)
+      VALUES (?, ?, ?, ?)
+    `);
+
+    const insertMany = this.db.transaction((teachers) => {
+      for (const teacher of teachers) {
+        stmt.run(teacher.id, teacher.name, teacher.phone, teacher.message || '');
+      }
+    });
+
+    insertMany(teachers);
+    console.log(`✅ Saved ${teachers.length} teacher(s) to database`);
+    return teachers.length;
+  }
+
+  /**
+   * Get all teachers
+   */
+  getAllTeachers() {
+    const stmt = this.db.prepare('SELECT * FROM teachers ORDER BY name');
+    return stmt.all();
+  }
+
+  /**
+   * Clear all teachers
+   */
+  clearTeachers() {
+    this.db.exec('DELETE FROM teachers');
+    console.log('🗑️ All teachers cleared from database');
+  }
+
+  // ============ STUDENTS ============
+
+  /**
+   * Add or update students (bulk)
+   */
+  saveStudents(students) {
+    const stmt = this.db.prepare(`
+      INSERT OR REPLACE INTO students (id, name, phone, message)
+      VALUES (?, ?, ?, ?)
+    `);
+
+    const insertMany = this.db.transaction((students) => {
+      for (const student of students) {
+        stmt.run(student.id, student.name, student.phone, student.message || '');
+      }
+    });
+
+    insertMany(students);
+    console.log(`✅ Saved ${students.length} student(s) to database`);
+    return students.length;
+  }
+
+  /**
+   * Get all students
+   */
+  getAllStudents() {
+    const stmt = this.db.prepare('SELECT * FROM students ORDER BY name');
+    return stmt.all();
+  }
+
+  /**
+   * Clear all students
+   */
+  clearStudents() {
+    this.db.exec('DELETE FROM students');
+    console.log('🗑️ All students cleared from database');
   }
 
   /**

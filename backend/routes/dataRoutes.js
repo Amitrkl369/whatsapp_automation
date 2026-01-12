@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import csvParser from 'csv-parser';
 import { Readable } from 'stream';
+import databaseService from '../services/databaseService.js';
 
 const router = express.Router();
 
@@ -12,10 +13,6 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024 // 5MB limit
   }
 });
-
-// In-memory storage for teachers and students (replace with database in production)
-let teachers = [];
-let students = [];
 
 // Upload and parse CSV with contacts
 router.post('/upload-contacts', upload.single('file'), async (req, res) => {
@@ -44,8 +41,9 @@ router.post('/upload-contacts', upload.single('file'), async (req, res) => {
       })
       .on('end', () => {
         // Parse CSV data
-        teachers = [];
-        students = [];
+        const teachers = [];
+        const students = [];
+        const teachersMap = new Map(); // To track unique teachers by phone
 
         // Log first row keys for debugging
         if (results.length > 0) {
@@ -80,21 +78,23 @@ router.post('/upload-contacts', upload.single('file'), async (req, res) => {
           const studentMsg = studentMsgKey ? row[studentMsgKey] : values[5];
 
           if (teacherName && teacherPhone) {
-            const existingTeacher = teachers.find(t => t.name === teacherName);
-            if (!existingTeacher) {
-              teachers.push({
-                id: `teacher-${teachers.length + 1}`,
+            const phone = String(teacherPhone).trim();
+            if (!teachersMap.has(phone)) {
+              const teacher = {
+                id: `teacher-${Date.now()}-${teachers.length}`,
                 name: teacherName.trim(),
-                phone: String(teacherPhone).trim(),
+                phone: phone,
                 message: teacherMsg || 'Hi {teacher}, just a quick reminder about your session today. Could you please confirm?'
-              });
+              };
+              teachers.push(teacher);
+              teachersMap.set(phone, teacher);
             }
           }
 
           // Extract student data
           if (studentName && studentPhone) {
             students.push({
-              id: `student-${students.length + 1}`,
+              id: `student-${Date.now()}-${students.length}`,
               name: studentName.trim(),
               phone: String(studentPhone).trim(),
               message: studentMsg || "Hi ma'am, Just a quick reminder about today's class at {date} {time} CST. Looking forward to seeing you in the session!"
@@ -105,12 +105,24 @@ router.post('/upload-contacts', upload.single('file'), async (req, res) => {
         console.log('Parsed teachers:', teachers.length);
         console.log('Parsed students:', students.length);
 
-        res.json({
-          success: true,
-          message: 'Contacts uploaded successfully',
-          teachersCount: teachers.length,
-          studentsCount: students.length
-        });
+        // Save to database
+        try {
+          databaseService.saveTeachers(teachers);
+          databaseService.saveStudents(students);
+          
+          res.json({
+            success: true,
+            message: 'Contacts uploaded and saved successfully',
+            teachersCount: teachers.length,
+            studentsCount: students.length
+          });
+        } catch (dbError) {
+          console.error('Database save error:', dbError);
+          res.status(500).json({ 
+            success: false, 
+            message: 'Failed to save contacts to database: ' + dbError.message 
+          });
+        }
       });
   } catch (error) {
     console.error('Upload error:', error);
@@ -120,12 +132,24 @@ router.post('/upload-contacts', upload.single('file'), async (req, res) => {
 
 // Get all teachers
 router.get('/teachers', (req, res) => {
-  res.json({ success: true, teachers });
+  try {
+    const teachers = databaseService.getAllTeachers();
+    res.json({ success: true, teachers });
+  } catch (error) {
+    console.error('Error getting teachers:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
 
 // Get all students
 router.get('/students', (req, res) => {
-  res.json({ success: true, students });
+  try {
+    const students = databaseService.getAllStudents();
+    res.json({ success: true, students });
+  } catch (error) {
+    console.error('Error getting students:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
 
 export default router;
