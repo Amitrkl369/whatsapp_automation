@@ -1,13 +1,24 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 class DatabaseService {
   constructor() {
-    const dbPath = path.join(__dirname, '..', 'data', 'whatsapp_automation.db');
+    const dataDir = path.join(__dirname, '..', 'data');
+    
+    // Ensure data directory exists
+    if (!fs.existsSync(dataDir)) {
+      console.log('📁 Creating data directory...');
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    
+    const dbPath = path.join(dataDir, 'whatsapp_automation.db');
+    console.log(`💾 Database path: ${dbPath}`);
+    
     this.db = new Database(dbPath);
     this.initializeTables();
   }
