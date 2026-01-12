@@ -175,11 +175,6 @@ class SchedulerService {
       await this.checkAndSendMessages();
     });
 
-    // Check for pending meeting reminders every minute
-    this.meetingCheckTask = cron.schedule('* * * * *', async () => {
-      await this.checkPendingMeetingReminders();
-    });
-
     // Schedule sheet sync (every 5 minutes or configured interval)
     const syncCron = `*/${config.scheduler.syncInterval} * * * *`;
     this.syncTask = cron.schedule(syncCron, async () => {
