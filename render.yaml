@@ -6,6 +6,10 @@ services:
     region: oregon
     buildCommand: cd backend && npm install
     startCommand: cd backend && npm start
+    disk:
+      name: whatsapp-data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
