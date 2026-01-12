@@ -8,10 +8,8 @@ const __dirname = path.dirname(__filename);
 
 class DatabaseService {
   constructor() {
-    // Use /var/data for persistent storage on Render, fallback to local data dir
-    const dataDir = process.env.NODE_ENV === 'production' 
-      ? '/var/data' 
-      : path.join(__dirname, '..', 'data');
+    // Use local data directory - writable on all platforms
+    const dataDir = path.join(__dirname, '..', 'data');
     
     // Ensure data directory exists
     if (!fs.existsSync(dataDir)) {
