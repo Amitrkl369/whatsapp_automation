@@ -128,14 +128,14 @@ class SchedulerService {
         year: 'numeric'
       });
 
-      // Send to teacher
-      const teacherMessage = `Hi ${meeting.teacherName}, just a quick reminder about your session today. Could you please confirm?`;
-      await whatsappService.sendMessage(meeting.teacherPhone, teacherMessage);
+      // Send template message to teacher
+      console.log(`📤 Sending template to teacher: ${meeting.teacherName} (${meeting.teacherPhone})`);
+      await whatsappService.sendTeacherReminder(meeting.teacherPhone, meeting.teacherName);
       console.log(`✅ Reminder sent to teacher: ${meeting.teacherName}`);
 
-      // Send to student
-      const studentMessage = `Hi ma'am, Just a quick reminder about today's class at ${meetingDate} ${meeting.time} CST. Looking forward to seeing you in the session!`;
-      await whatsappService.sendMessage(meeting.studentPhone, studentMessage);
+      // Send template message to student
+      console.log(`📤 Sending template to student: ${meeting.studentName} (${meeting.studentPhone})`);
+      await whatsappService.sendStudentReminder(meeting.studentPhone, meetingDate, meeting.time);
       console.log(`✅ Reminder sent to student: ${meeting.studentName}`);
 
       // Update meeting status in database

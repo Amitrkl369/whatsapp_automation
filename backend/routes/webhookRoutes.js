@@ -1,4 +1,5 @@
 import express from 'express';
+import whatsappService from '../services/whatsappService.js';
 const router = express.Router();
 
 // Webhook verification endpoint
@@ -22,9 +23,35 @@ router.get('/webhook', (req, res) => {
 
 // Webhook event receiver
 router.post('/webhook', (req, res) => {
-    // Handle incoming webhook events here
-    console.log('Received webhook event:', JSON.stringify(req.body, null, 2));
-    res.sendStatus(200);
+    try {
+        console.log('Received webhook event:', JSON.stringify(req.body, null, 2));
+        
+        // Process WhatsApp status updates
+        const entry = req.body.entry?.[0];
+        const changes = entry?.changes?.[0];
+        const value = changes?.value;
+        
+        if (value?.statuses) {
+            // Handle message status updates (sent, delivered, read, failed)
+            value.statuses.forEach(status => {
+                const messageId = status.id;
+                const statusType = status.status; // sent, delivered, read, failed
+                
+                console.log(`📱 Status update - Message: ${messageId}, Status: ${statusType}`);
+                whatsappService.updateMessageStatus(messageId, statusType);
+            });
+        }
+        
+        if (value?.messages) {
+            // Handle incoming messages (if needed)
+            console.log('📨 Received incoming message');
+        }
+        
+        res.sendStatus(200);
+    } catch (error) {
+        console.error('Webhook error:', error);
+        res.sendStatus(500);
+    }
 });
 
 export default router;

@@ -24,6 +24,10 @@ const config = {
     apiToken: process.env.WHATSAPP_API_TOKEN,
     phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID,
     businessAccountId: process.env.WHATSAPP_BUSINESS_ACCOUNT_ID,
+    // Template names (create these in Meta Business Manager)
+    teacherTemplate: process.env.WHATSAPP_TEACHER_TEMPLATE || 'hello_world',
+    studentTemplate: process.env.WHATSAPP_STUDENT_TEMPLATE || 'hello_world',
+    templateLanguage: process.env.WHATSAPP_TEMPLATE_LANGUAGE || 'en_US',
   },
 
   // Scheduler
